@@ -61,15 +61,21 @@ def get_coordinates(address):
     return ll, span
 
 
-def get_photo(point: str, spn="0.05,0.05", type_photo="map", sco="latlong"):
-    photo_params = {
-        "ll": point,
-        "sco": sco,
-        "spn": spn,
-        "l": type_photo
-    }
-    response = requests.get(SERVER_STATIC, params=photo_params)
+def get_photo(point: str, spn="0.05,0.05", type_photo="map"):
+
+    request = f"{SERVER_STATIC}?ll={point}&spn={spn}&l={type_photo}"
+    print(request)
+    response = requests.get(request)
     return response
+
+
+def change_spn(spn: tuple, value: int) -> tuple:
+    coef = 1.1
+    if value < 0:
+        coef = 0.9
+    spn = (spn[0] + value * spn[0] * coef, spn[1] + value * spn[1] * coef)
+    spn = (spn[0] if spn[0] > 0.001 else 0.001, spn[1] if spn[1] > 0.001 else 0.001)
+    return spn
 
 
 if __name__ == "__main__":

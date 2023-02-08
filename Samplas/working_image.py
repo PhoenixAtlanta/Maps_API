@@ -1,4 +1,5 @@
 import os
+from random import randint
 
 
 def open_image(data, image_name="map_image.png"):
