@@ -23,12 +23,10 @@ class MapWindow(QMainWindow):
         super().__init__()
         uic.loadUi("map_window.ui", self)  # загрузка ui формы
         self.address = "37.530633,55.702877"  # МГУ имени Ломоносова, Москва
+        self.type_map = "map"
         self.spn = (0.05, 0.05)
         self.ll = (37.530633, 55.702877)
-        response = self.get_static(address=transform_address(self.ll))  # получить картинку
-
-        self.image_create(response)  # показать результат
-
+        self.create_photo()
         # словарь с нажатыми кнопками и инструкциями
         self.key_move = {
             "PGUP": {"key": Qt.Key_PageUp, "callback": change_spn, "value": 1, "type": "scale"},
@@ -39,7 +37,23 @@ class MapWindow(QMainWindow):
             "RIGHT": {"key": Qt.Key_Right, "callback": change_ll, "value": (1, 0), "type": "move"}
         }
 
-    def image_create(self, response):  # вывести картинку
+        self.variants_map_types = {
+            "Схема": "map",
+            "Спутник": "sat",
+            "Гибрид": "sat,skl"
+        }  # все типы карт
+
+        self.map_type_select.activated.connect(self.change_type_map)  # выбор нового типа карты
+
+    def create_photo(self):  # создать фото
+        response = self.get_static(transform_address(self.ll), spn=",".join(map(str, self.spn)))
+        self.show_image(response)
+
+    def change_type_map(self):  # изменить тип карты
+        self.type_map = self.variants_map_types[self.sender().currentText()]
+        self.create_photo()
+
+    def show_image(self, response):  # вывести картинку
         working_image.open_image(response, image_name=file_name)
         self.pixmap = QPixmap(file_name)
         self.image_map_label.setPixmap(self.pixmap)
@@ -59,13 +73,10 @@ class MapWindow(QMainWindow):
                     self.ll = self.key_move[elem]["callback"](self.ll, self.spn, self.key_move[elem]["value"])
 
         if change_map:  # обновить фото
-            response = self.get_static(transform_address(self.ll), spn=",".join(map(str, self.spn)))
-            self.image_create(response)
+            self.create_photo()
 
-
-    @staticmethod
-    def get_static(address, spn="0.03,0.03"):  # запрос по получению фотографии
-        response = get_photo(address, spn=spn)  # МГУ имени Ломоносова, Москва
+    def get_static(self, address, spn="0.03,0.03"):  # запрос по получению фотографии
+        response = get_photo(address, spn=spn, type_photo=self.type_map)  # МГУ имени Ломоносова, Москва
         return response
 
     def closeEvent(self, event):  # удалить фото при закрытии проложения
