@@ -27,9 +27,9 @@ def geocode(geocode: str, sco="latlong", kind="house", format="json"):  # зап
     }
 
     response = requests.get(SERVER_GEOCODE, geo_params).json()
-    features = response["response"]["GeoObjectCollection"]["featureMember"]
-    open_json(features[0]["GeoObject"])
-    return response
+    # open_json(response)
+    features = response["response"]["GeoObjectCollection"]["featureMember"][0]["GeoObject"]
+    return features
 
 
 def get_coordinates(address):
@@ -39,10 +39,10 @@ def get_coordinates(address):
 
     toponym_coordinates = toponym["Point"]["pos"]
 
-    toponym_longitude, toponym_lattitude = toponym_coordinates.split(" ")
+    toponym_longitude, toponym_lattitude = map(float, toponym_coordinates.split(" "))
 
     # Собираем координаты в параметр ll
-    ll = ",".join([toponym_longitude, toponym_lattitude])
+    ll = (toponym_longitude, toponym_lattitude)
 
     # Рамка вокруг объекта:
     envelope = toponym["boundedBy"]["Envelope"]
@@ -56,14 +56,13 @@ def get_coordinates(address):
     dy = abs(float(t) - float(b)) / 2.0
 
     # Собираем размеры в параметр span
-    span = f"{dx},{dy}"
+    span = (dx, dy)
 
     return ll, span
 
 
-def get_photo(point: str, spn="0.05,0.05", type_photo="map"):  # получить фото
-
-    request = f"{SERVER_STATIC}?ll={point}&spn={spn}&l={type_photo}"
+def get_photo(point: str, spn="0.05,0.05", type_photo="map", mark=""):  # получить фото
+    request = f"{SERVER_STATIC}?ll={point}&spn={spn}&l={type_photo}&pt={mark}"
     # print(request)
     response = requests.get(request)
     return response

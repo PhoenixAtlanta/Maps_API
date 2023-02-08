@@ -2,7 +2,7 @@ import sys
 from PyQt5.QtWidgets import QApplication, QMainWindow
 from PyQt5.QtGui import QPixmap
 from PyQt5 import uic
-from Samplas.geocode import get_photo, change_spn, change_ll
+from Samplas.geocode import get_photo, change_spn, change_ll, get_coordinates
 from Samplas import working_image
 from PyQt5.QtCore import Qt
 
@@ -22,11 +22,13 @@ class MapWindow(QMainWindow):
     def __init__(self):
         super().__init__()
         uic.loadUi("map_window.ui", self)  # загрузка ui формы
-        self.address = "37.530633,55.702877"  # МГУ имени Ломоносова, Москва
-        self.type_map = "map"
-        self.spn = (0.05, 0.05)
-        self.ll = (37.530633, 55.702877)
+        self.address = "37.530633,55.702877"  # МГУ имени Ломоносова, Москва по умолчанию
+        self.type_map = "map"  # тип карты
+        self.spn = (0.05, 0.05)  # размер карты
+        self.pos_mark = ""  # метка
+        self.ll = (37.530633, 55.702877)  # позиции
         self.create_photo()
+
         # словарь с нажатыми кнопками и инструкциями
         self.key_move = {
             "PGUP": {"key": Qt.Key_PageUp, "callback": change_spn, "value": 1, "type": "scale"},
@@ -44,6 +46,13 @@ class MapWindow(QMainWindow):
         }  # все типы карт
 
         self.map_type_select.activated.connect(self.change_type_map)  # выбор нового типа карты
+        self.find_btn.clicked.connect(self.find_ll)  # поиск по поисковой строке
+
+    def find_ll(self):  # получить координаты по адресу
+        address = self.find_address_fiend.text()  # получить адрес из поисковой строки
+        self.ll, self.spn = get_coordinates(address)  # новые координаты и размер
+        self.pos_mark = f"{transform_address(self.ll)},pm2rdl"  # поставить метку
+        self.create_photo()
 
     def create_photo(self):  # создать фото
         response = self.get_static(transform_address(self.ll), spn=",".join(map(str, self.spn)))
@@ -76,7 +85,7 @@ class MapWindow(QMainWindow):
             self.create_photo()
 
     def get_static(self, address, spn="0.03,0.03"):  # запрос по получению фотографии
-        response = get_photo(address, spn=spn, type_photo=self.type_map)  # МГУ имени Ломоносова, Москва
+        response = get_photo(address, spn=spn, type_photo=self.type_map, mark=self.pos_mark)
         return response
 
     def closeEvent(self, event):  # удалить фото при закрытии проложения
