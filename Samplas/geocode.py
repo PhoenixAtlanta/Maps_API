@@ -7,7 +7,7 @@ SERVER_GEOCODE = "http://geocode-maps.yandex.ru/1.x/"
 SERVER_SEARCH = "https://search-maps.yandex.ru/v1/"
 
 
-def geocode(geocode: str, sco="latlong", kind="house", format="json"):
+def geocode(geocode: str, sco="latlong", kind="house", format="json"):  # запрос
     """
     :param geocode: str
     :param sco: longlat - долгота, широта, latlong - широта, долгота
@@ -61,7 +61,7 @@ def get_coordinates(address):
     return ll, span
 
 
-def get_photo(point: str, spn="0.05,0.05", type_photo="map"):
+def get_photo(point: str, spn="0.05,0.05", type_photo="map"):  # получить фото
 
     request = f"{SERVER_STATIC}?ll={point}&spn={spn}&l={type_photo}"
     print(request)
@@ -69,13 +69,18 @@ def get_photo(point: str, spn="0.05,0.05", type_photo="map"):
     return response
 
 
-def change_spn(spn: tuple, value: int) -> tuple:
+def change_spn(spn: tuple, value: int) -> tuple:  # изменить spn
     coef = 1.1
     if value < 0:
-        coef = 0.9
+        coef = 0.5
     spn = (spn[0] + value * spn[0] * coef, spn[1] + value * spn[1] * coef)
     spn = (spn[0] if spn[0] > 0.001 else 0.001, spn[1] if spn[1] > 0.001 else 0.001)
     return spn
+
+
+def change_ll(ll: tuple, spn: tuple, value: tuple):  # изменить координаты
+    ll = ll[0] + spn[0] * value[0] * 2, ll[1] + spn[1] * value[1] * 2
+    return ll
 
 
 if __name__ == "__main__":
