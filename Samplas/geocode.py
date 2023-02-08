@@ -64,7 +64,7 @@ def get_coordinates(address):
 def get_photo(point: str, spn="0.05,0.05", type_photo="map"):  # получить фото
 
     request = f"{SERVER_STATIC}?ll={point}&spn={spn}&l={type_photo}"
-    print(request)
+    # print(request)
     response = requests.get(request)
     return response
 
