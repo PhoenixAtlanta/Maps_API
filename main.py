@@ -47,6 +47,7 @@ class MapWindow(QMainWindow):
 
         self.map_type_select.activated.connect(self.change_type_map)  # выбор нового типа карты
         self.find_btn.clicked.connect(self.find_ll)  # поиск по поисковой строке
+        self.reset_btn.clicked.connect(self.reset_find)  # сбросить метки и поиск
 
     def find_ll(self):  # получить координаты по адресу
         address = self.find_address_fiend.text()  # получить адрес из поисковой строки
@@ -57,6 +58,11 @@ class MapWindow(QMainWindow):
     def create_photo(self):  # создать фото
         response = self.get_static(transform_address(self.ll), spn=",".join(map(str, self.spn)))
         self.show_image(response)
+
+    def reset_find(self):
+        self.find_address_fiend.setText("")
+        self.pos_mark = ""
+        self.create_photo()
 
     def change_type_map(self):  # изменить тип карты
         self.type_map = self.variants_map_types[self.sender().currentText()]
@@ -79,6 +85,7 @@ class MapWindow(QMainWindow):
                     self.spn = self.key_move[elem]["callback"](self.spn, self.key_move[elem]["value"])
 
                 elif self.key_move[elem]["type"] == "move":  # прожата кнопка, которая меняет ll
+                    print(1)
                     self.ll = self.key_move[elem]["callback"](self.ll, self.spn, self.key_move[elem]["value"])
 
         if change_map:  # обновить фото
