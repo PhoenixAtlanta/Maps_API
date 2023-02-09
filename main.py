@@ -2,7 +2,7 @@ import sys
 from PyQt5.QtWidgets import QApplication, QMainWindow
 from PyQt5.QtGui import QPixmap
 from PyQt5 import uic
-from Samplas.geocode import get_photo, change_spn, change_ll, get_coordinates
+from Samplas.geocode import get_photo, change_spn, change_ll, get_coordinates, geocode
 from Samplas import working_image
 from PyQt5.QtCore import Qt
 
@@ -53,7 +53,12 @@ class MapWindow(QMainWindow):
         address = self.find_address_fiend.text()  # получить адрес из поисковой строки
         self.ll, self.spn = get_coordinates(address)  # новые координаты и размер
         self.pos_mark = f"{transform_address(self.ll)},pm2rdl"  # поставить метку
+        self.show_full_address()
         self.create_photo()
+
+    def show_full_address(self):
+        full_address = geocode(self.find_address_fiend.text())["metaDataProperty"]["GeocoderMetaData"]["text"]
+        self.result_address_field.setText(full_address)
 
     def create_photo(self):  # создать фото
         response = self.get_static(transform_address(self.ll), spn=",".join(map(str, self.spn)))
@@ -62,6 +67,7 @@ class MapWindow(QMainWindow):
     def reset_find(self):
         self.find_address_fiend.setText("")
         self.pos_mark = ""
+        self.result_address_field.setText("")
         self.create_photo()
 
     def change_type_map(self):  # изменить тип карты
