@@ -48,6 +48,7 @@ class MapWindow(QMainWindow):
         self.map_type_select.activated.connect(self.change_type_map)  # выбор нового типа карты
         self.find_btn.clicked.connect(self.find_ll)  # поиск по поисковой строке
         self.reset_btn.clicked.connect(self.reset_find)  # сбросить метки и поиск
+        self.index_mark.clicked.connect(self.show_full_address)
 
     def find_ll(self):  # получить координаты по адресу
         address = self.find_address_fiend.text()  # получить адрес из поисковой строки
@@ -56,18 +57,26 @@ class MapWindow(QMainWindow):
         self.show_full_address()
         self.create_photo()
 
-    def show_full_address(self):
-        full_address = geocode(self.find_address_fiend.text())["metaDataProperty"]["GeocoderMetaData"]["text"]
-        self.result_address_field.setText(full_address)
+    def show_full_address(self):  # показать полный адрес и почтовый индекс
+        address = []
+        try:
+            response = geocode(self.find_address_fiend.text())["metaDataProperty"]["GeocoderMetaData"]
+            address.append(response["text"])
+            if self.index_mark.isChecked():
+                address.append(response["Address"]["postal_code"])
+            self.result_address_field.setText(",".join(address))
+        except KeyError:
+            ...
 
     def create_photo(self):  # создать фото
         response = self.get_static(transform_address(self.ll), spn=",".join(map(str, self.spn)))
         self.show_image(response)
 
-    def reset_find(self):
+    def reset_find(self):  # сбросить все значения
         self.find_address_fiend.setText("")
         self.pos_mark = ""
         self.result_address_field.setText("")
+        self.index_mark.setChecked(False)
         self.create_photo()
 
     def change_type_map(self):  # изменить тип карты
